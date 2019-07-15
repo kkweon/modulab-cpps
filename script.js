@@ -29,8 +29,8 @@ function getSpaceComplexity(anchor) {
 var anchors = [...document.querySelectorAll('.markdown-body .anchor')].slice(1);
 var ret = anchors
   .map(a => {
-    let t = getTimeComplexity(a);
-    let s = getSpaceComplexity(a);
+    const t = getTimeComplexity(a);
+    const s = getSpaceComplexity(a);
 
     return `=HYPERLINK("${a.href}", "${t} / ${s}")`;
   })
