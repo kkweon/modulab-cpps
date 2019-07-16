@@ -226,4 +226,26 @@ bool hasCycle(ListNode* head) {
 
 ## Extra (Array / String)
 
-TBD
+- Time: Permutation O(N^2 * N!)
+- Space: O(N!)
+
+```cpp
+vector<vector<int>> ret;
+vector<vector<int>> permute(vector<int>& nums) {
+    go(nums, 0);                
+    return ret;
+}
+
+void go(vector<int>& xs, int idx) {
+    if (xs.size() <= idx) {
+        ret.push_back(xs);
+        return;
+    }
+
+    for (int i = idx; i < xs.size(); ++i) {
+        swap(xs[idx], xs[i]);
+        go(xs, idx + 1); 
+        swap(xs[idx], xs[i]);
+    }
+}
+```
