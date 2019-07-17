@@ -26,7 +26,7 @@ function getSpaceComplexity(anchor) {
   }
 }
 
-var anchors = [...document.querySelectorAll('.markdown-body .anchor')].slice(1);
+var anchors = [...document.querySelectorAll('.markdown-body h2 .anchor')];
 var ret = anchors
   .map(a => {
     const t = getTimeComplexity(a);
