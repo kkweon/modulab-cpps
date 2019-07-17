@@ -1,0 +1,27 @@
+{
+  "name": "modulab-cpps",
+  "version": "1.0.0",
+  "description": "풀잎스쿨 CPPS",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kkweon/modulab-cpps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kkweon/modulab-cpps/issues"
+  },
+  "homepage": "https://github.com/kkweon/modulab-cpps#readme",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.1",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.14.2"
+  }
+}
