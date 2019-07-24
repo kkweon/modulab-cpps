@@ -55,9 +55,45 @@ bool isValid(string s) {
 
 ## Q3. Odd Even Jump
 
-- Time: O(N)
+- Time: O(NlogN)
 - Space: O(N)
 
+```cpp
+int oddEvenJumps(vector<int>& A) {
+  int N = A.size();
+
+  // value -> index
+  map<int, int> m;
+  m[A.back()] = N - 1;
+
+  // Returns (can jump to j) where A[i] <= A[j]
+  vector<bool> odd(N, false);
+  // Returns (can jump to j) where A[i] >= A[j]
+  vector<bool> even(N, false);
+
+  odd.back() = true;
+  even.back() = true;
+
+  for (int i = N - 2; 0 <= i; --i) {
+    auto lo = m.lower_bound(A[i]);
+    auto hi = m.upper_bound(A[i]);
+
+    if (lo != m.end()) {
+      // find odd jump index
+      odd[i] = even[lo->second];
+    }
+
+    if (hi != m.begin()) {
+      // find even jump index
+      even[i] = odd[(--hi)->second];
+    }
+
+    m[A[i]] = i;
+  }
+
+  return accumulate(odd.begin(), odd.end(), 0);
+}
+```
 
 ## Q4. Basic Calculator
 
@@ -196,7 +232,48 @@ class MinStack {
 
 ## Q7. Queue via Stacks
 
+- Time: O(1)
+- Space: O(N)
+
+```cpp
+class MyQueue {
+ private:
+  stack<int> s1;
+  stack<int> s2;
+
+ public:
+  /** Initialize your data structure here. */
+  MyQueue() {}
+
+  /** Push element x to the back of queue. */
+  void push(int x) { s1.push(x); }
+
+  /** Removes the element from in front of queue and returns that element. */
+  int pop() {
+    auto t = peek();
+    s2.pop();
+    return t;
+  }
+
+  /** Get the front element. */
+  int peek() {
+    if (s2.empty()) {
+      while (s1.size()) {
+        s2.push(s1.top());
+        s1.pop();
+      }
+    }
+    return s2.top();
+  }
+
+  /** Returns whether the queue is empty. */
+  bool empty() { return s1.empty() && s2.empty(); }
+};
+```
 ## Q8. Task Scheduler
+
+- Time: O(N)
+- Space: O(1)
 
 ```python
 from collections import Counter
