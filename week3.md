@@ -1,4 +1,4 @@
-# Chapter 3
+# Week 3
 
 ## Q1. Trapping Rain Water
 

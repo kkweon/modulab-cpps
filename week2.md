@@ -1,4 +1,4 @@
-# Chapter 2
+# Week 2
 
 ## Q1. Remove Duplicates
 
