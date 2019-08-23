@@ -13,7 +13,7 @@ function getTimeComplexity(anchor) {
       .replace(/time:/i, '')
       .trim();
   } catch (e) {
-    console.errror(e);
+    console.error(e);
     return 'NA';
   }
 }
