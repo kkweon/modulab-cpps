@@ -1,75 +1,6 @@
-# Week 5
+# Week 4
 
-## Q1. Serialize and Deserialize Binary Tree
-
-- Time: O(N)
-- Space: O(N)
-
-```python
-class Codec:
-    def serialize(self, root):
-        """Encodes a tree to a single string."""
-        ret = []
-
-        def helper(node):
-            if not node:
-                ret.append("null")
-                return
-            ret.append(str(node.val))
-            helper(node.left)
-            helper(node.right)
-
-        helper(root)
-
-        return ",".join(ret)
-
-
-    def deserialize(self, data):
-        """Decodes your encoded data to tree."""
-        data = data.split(",")
-        i = 0
-
-        def go():
-            nonlocal i
-            v = data[i]
-            i += 1
-            if v == "null":
-                return None
-            node = TreeNode(int(v))
-            node.left = go()
-            node.right = go()
-            return node
-
-        return go()
-```
-
-## Q2. Binary Tree Maximum Path Sum
-
-- Time: O(N)
-- Space: O(N)
-
-```cpp
-class Solution {
-private:
-  int max_val = INT_MIN;
-
-public:
-  int maxPathSum(TreeNode* root) {
-    get_sum(root);
-    return max_val;
-  }
-
-  int get_sum(TreeNode* root) {
-    if (!root) return INT_MIN;
-    auto l_sum = max(0, get_sum(root->left));
-    auto r_sum = max(0, get_sum(root->right));
-    max_val = max(max_val, l_sum + root->val + r_sum);
-    return max(l_sum + root->val, r_sum + root->val);
-  }
-};
-```
-
-## Q3. Binary Tree Zigzag Level Order Traversal
+## Q1. K Closest Points to Origin
 
 - Time: O(N)
 - Space: O(N)
@@ -77,193 +8,305 @@ public:
 ```cpp
 class Solution {
 public:
-  vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
-    if (!root) return {};
-    queue<TreeNode*> q;
-    q.push(root);
-    bool left_to_right = true;
+  int dist(const vector<int>& xs) { return xs[0] * xs[0] + xs[1] * xs[1]; }
 
-    vector<vector<int>> ret;
+  vector<vector<int>> kClosest(vector<vector<int>>& points, int K) {
+    if (points.empty()) return {};
 
-    while (q.size()) {
-      queue<TreeNode*> next_q;
-      vector<int> curr;
-      while (q.size()) {
-        auto node = q.front();
-        q.pop();
-        curr.emplace_back(node->val);
+    int l = 0, r = points.size() - 1;
 
-        if (node->left) next_q.push(node->left);
-        if (node->right) next_q.push(node->right);
-      }
-
-      if (!left_to_right) {
-        reverse(curr.begin(), curr.end());
-      }
-      ret.push_back(curr);
-      left_to_right = !left_to_right;
-      q = next_q;
+    while (l <= r) {
+      int mid = partition(points, l, r);
+      if (mid == K)
+        break;
+      else if (mid < K)
+        l = mid + 1;
+      else
+        r = mid - 1;
     }
 
-    return ret;
+    return {points.begin(), points.begin() + K};
+  }
+
+  int partition(vector<vector<int>>& xs, int l, int r) {
+    int w_idx = l;
+    for (int i = l; i < r; ++i) {
+      if (dist(xs[i]) < dist(xs[r])) swap(xs[w_idx++], xs[i]);
+    }
+    swap(xs[w_idx], xs[r]);
+    return w_idx;
   }
 };
 ```
 
-## Q4. Validate Binary Search Tree
+## Q2. Merge k Sorted Lists
+
+- Time: O(N log K)
+- Space: O(N)
+
+```cpp
+class Compare {
+ public:
+  bool operator()(const ListNode* l, const ListNode* r) const {
+    return l->val > r->val;
+  }
+};
+class Solution {
+ public:
+  ListNode* mergeKLists(vector<ListNode*>& lists) {
+    priority_queue<ListNode*, vector<ListNode*>, Compare> pq;
+
+    for (auto list_node : lists) {
+      if (list_node != nullptr) {
+        pq.push(list_node);
+      }
+    }
+
+    ListNode head(-1);
+    auto curr = &head;
+
+    while (pq.size()) {
+      auto list_node = pq.top();
+      pq.pop();
+      curr->next = list_node;
+      if (list_node->next) {
+        pq.push(move(list_node->next));
+      }
+      curr = curr->next;
+    }
+
+    return head.next;
+  }
+};
+```
+
+## Q3. Find Median from Data Stream
+
+- Time: O(log N)
+- Space: O(N)
+
+```cpp
+class MedianFinder {
+ private:
+  priority_queue<int> lower;
+  priority_queue<int, vector<int>, greater<int>> upper;
+
+ public:
+  /** initialize your data structure here. */
+  MedianFinder() {}
+
+  void addNum(int num) {
+    lower.push(num);
+    auto t = lower.top();
+    lower.pop();
+    upper.push(t);
+
+    if (lower.size() < upper.size()) {
+      auto t = upper.top();
+      upper.pop();
+      lower.push(t);
+    }
+  }
+
+  double findMedian() {
+    if (lower.size() == upper.size()) return 0.5 * (lower.top() + upper.top());
+    return lower.top();
+  }
+};
+```
+
+## Q4. Kth Largest Element in an Array
+
+- Time: O(N)
+- Space: O(1)
+
+```cpp
+class Solution {
+ public:
+  int findKthLargest(vector<int>& nums, int k) {
+    int l = 0, r = static_cast<int>(nums.size()) - 1;
+    while (l <= r) {
+      auto mid = partition(nums, l, r);
+      if (mid == k - 1)
+        return nums[mid];
+      else if (mid < k - 1)
+        l = mid + 1;
+      else
+        r = mid - 1;
+    }
+    return -1;
+  }
+
+  /**
+   * QuickSelect
+   */
+  int partition(vector<int>& nums, int l, int r) {
+    int w_idx = l;
+    for (int i = l; i < r; ++i) {
+      if (nums[i] > nums[r]) swap(nums[w_idx++], nums[i]);
+    }
+    swap(nums[w_idx], nums[r]);
+    return w_idx;
+  }
+};
+```
+
+## Q5. Two Sum
 
 - Time: O(N)
 - Space: O(N)
 
-```go
-func isValidBST(root *TreeNode) bool {
-    if root == nil {
-        return true
+```rust
+use std::collections::HashMap;
+
+impl Solution {
+  pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
+    let mut m: HashMap<i32, i32> = HashMap::new();
+
+    for (j, n) in nums.iter().enumerate() {
+      if let Some(&i) = m.get(n) {
+          return vec![i, j as i32];
+      }
+      m.insert(target - n, j as i32);
     }
-    return check(root, math.MinInt64, math.MaxInt64)
+
+    return Vec::new();
+  }
 }
+```
 
-func check(node *TreeNode, lower, upper int64) bool {
-    if node == nil {
-        return true
+## Q6. Group Anagrams
+
+- Time: O(NK log k)
+- Space: O(NK)
+
+```rust
+use std::collections::HashMap;
+
+impl Solution {
+  pub fn group_anagrams(strs: Vec<String>) -> Vec<Vec<String>> {
+    let mut m: HashMap<String, Vec<String>> = HashMap::new();
+
+    for word in strs {
+      let mut chars = word.chars().clone().collect::<Vec<_>>();
+      chars.sort();
+      let key: String = chars.into_iter().collect::<String>();
+      m.entry(key).or_insert_with(Vec::new).push(word);
     }
 
-    val := int64(node.Val)
-
-    if !(lower < val && val < upper) {
-        return false
-    }
-
-    return check(node.Left, lower, val) && check(node.Right, val, upper)
+    m.into_iter().map(|(_, xs)| xs).collect::<Vec<Vec<String>>>()
+  }
 }
 ```
 
-## Q5. Serialize and Deserialize BST
+## Q7. Subarray Sum Equals K
 
 - Time: O(N)
 - Space: O(N)
 
-```cpp
-class Codec {
-public:
-  // Encodes a tree to a single string.
-  string serialize(TreeNode* root) {
-    string ret;
-    go(root, ret);
-    // remove final space
-    if (ret.size()) ret.pop_back();
-    return ret;
-  }
+```rust
+use std::collections::HashMap;
 
-  void go(TreeNode* node, string& ret) {
-    if (!node) return;
-    ret += to_string(node->val);
-    ret.push_back(' ');
-    go(node->left, ret);
-    go(node->right, ret);
-  }
+impl Solution {
+  pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
+    let mut count = 0;
+    let mut sum = 0;
+    let mut map = HashMap::new();
+    map.insert(0, 1);
 
-  // Decodes your encoded data to tree.
-  TreeNode* deserialize(string data) {
-    istringstream ss(data);
-    string token;
+    for n in nums {
+      sum += n;
 
-    queue<int> q;
-
-    while (getline(ss, token, ' ')) {
-      q.push(stoi(token));
-    }
-
-    return build_node(q);
-  }
-
-  TreeNode* build_node(queue<int>& q) {
-    if (q.empty()) return nullptr;
-    auto val = q.front();
-    q.pop();
-    queue<int> next_q;
-    while (q.size() && q.front() < val) {
-      next_q.push(q.front());
-      q.pop();
-    }
-    auto node = new TreeNode(val);
-    node->left = build_node(next_q);
-    node->right = build_node(q);
-    return node;
-  }
-};
-```
-
-## Q6. Binary Tree Right Side View
-
-- Time: O(N)
-- Space; O(N)
-
-```cpp
-class Solution {
-public:
-  vector<int> rightSideView(TreeNode\* root) {
-    if (!root) return {};
-    vector<int> ret;
-
-    queue<TreeNode*> q;
-    q.push(root);
-
-    while (q.size()) {
-      queue<TreeNode*> next_q;
-      int val;
-      while (q.size()) {
-        auto node = q.front();
-        q.pop();
-        val = node->val;
-
-        if (node->left) next_q.push(node->left);
-        if (node->right) next_q.push(node->right);
+      if let Some(c) = map.get(&(sum - k)) {
+        count += c;
       }
-      q = next_q;
-      ret.push_back(val);
+
+      *map.entry(sum).or_insert(0) += 1;
     }
 
-    return ret;
+    count
   }
-};
+}
 ```
 
-## Q7. Lowest Common Ancestor of a Binary Tree
+## Q8. Palindrome Pairs
+
+- Time: -
+- Space: -
+
+
+## Q9. Copy List with Random Pointer
 
 - Time: O(N)
 - Space: O(N)
 
 ```cpp
 class Solution {
-public:
-  TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
-    if (!root || root == p || root == q) return root;
-    auto left = lowestCommonAncestor(root->left, p, q);
-    auto right = lowestCommonAncestor(root->right, p, q);
-    if (left && right) return root;
-    return left ? left : right;
+ public:
+  Node* copyRandomList(Node* head) {
+    auto curr = head;
+    while (curr) {
+      curr->next = new Node(curr->val, curr->next, nullptr);
+      curr = curr->next->next;
+    }
+
+    curr = head;
+    while (curr) {
+      if (curr->random) curr->next->random = curr->random->next;
+      curr = curr->next->next;
+    }
+
+    Node t(-1, nullptr, nullptr);
+    auto t_it = &t;
+
+    curr = head;
+    while (curr) {
+      t_it->next = move(curr->next);
+      curr->next = move(t_it->next->next);
+
+      t_it = t_it->next;
+      curr = curr->next;
+    }
+
+    return t.next;
   }
 };
 ```
 
-## Q8. Symmetric Tree
+## Q10. Insert Delete GetRandom O(1)
 
-- Time: O(N)
+- Time: O(1)
 - Space: O(N)
 
 ```cpp
 class Solution {
-public:
-  bool isSymmetric(TreeNode* root) {
-    if (!root) return true;
-    return isSymmetricHelper(root->left, root->right);
-  }
-  bool isSymmetricHelper(TreeNode* l, TreeNode* r) {
-    if (!l || !r) return l == r;
-    if (l->val != r->val) return false;
-    return isSymmetricHelper(l->left, r->right) &&
-           isSymmetricHelper(l->right, r->left);
+ public:
+  Node* copyRandomList(Node* head) {
+    auto curr = head;
+    while (curr) {
+      curr->next = new Node(curr->val, curr->next, nullptr);
+      curr = curr->next->next;
+    }
+
+    curr = head;
+    while (curr) {
+      if (curr->random) curr->next->random = curr->random->next;
+      curr = curr->next->next;
+    }
+
+    Node t(-1, nullptr, nullptr);
+    auto t_it = &t;
+
+    curr = head;
+    while (curr) {
+      t_it->next = move(curr->next);
+      curr->next = move(t_it->next->next);
+
+      t_it = t_it->next;
+      curr = curr->next;
+    }
+
+    return t.next;
   }
 };
 ```

@@ -1,241 +1,101 @@
-# Week 4
+# Week 3
 
-## Q1. K Closest Points to Origin
-
-- Time: O(N)
-- Space: O(N)
-
-```cpp
-class Solution {
-public:
-  int dist(const vector<int>& xs) { return xs[0] * xs[0] + xs[1] * xs[1]; }
-
-  vector<vector<int>> kClosest(vector<vector<int>>& points, int K) {
-    if (points.empty()) return {};
-
-    int l = 0, r = points.size() - 1;
-
-    while (l <= r) {
-      int mid = partition(points, l, r);
-      if (mid == K)
-        break;
-      else if (mid < K)
-        l = mid + 1;
-      else
-        r = mid - 1;
-    }
-
-    return {points.begin(), points.begin() + K};
-  }
-
-  int partition(vector<vector<int>>& xs, int l, int r) {
-    int w_idx = l;
-    for (int i = l; i < r; ++i) {
-      if (dist(xs[i]) < dist(xs[r])) swap(xs[w_idx++], xs[i]);
-    }
-    swap(xs[w_idx], xs[r]);
-    return w_idx;
-  }
-};
-```
-
-## Q2. Merge k Sorted Lists
-
-- Time: O(N log K)
-- Space: O(N)
-
-```cpp
-class Compare {
- public:
-  bool operator()(const ListNode* l, const ListNode* r) const {
-    return l->val > r->val;
-  }
-};
-class Solution {
- public:
-  ListNode* mergeKLists(vector<ListNode*>& lists) {
-    priority_queue<ListNode*, vector<ListNode*>, Compare> pq;
-
-    for (auto list_node : lists) {
-      if (list_node != nullptr) {
-        pq.push(list_node);
-      }
-    }
-
-    ListNode head(-1);
-    auto curr = &head;
-
-    while (pq.size()) {
-      auto list_node = pq.top();
-      pq.pop();
-      curr->next = list_node;
-      if (list_node->next) {
-        pq.push(move(list_node->next));
-      }
-      curr = curr->next;
-    }
-
-    return head.next;
-  }
-};
-```
-
-## Q3. Find Median from Data Stream
-
-- Time: O(log N)
-- Space: O(N)
-
-```cpp
-class MedianFinder {
- private:
-  priority_queue<int> lower;
-  priority_queue<int, vector<int>, greater<int>> upper;
-
- public:
-  /** initialize your data structure here. */
-  MedianFinder() {}
-
-  void addNum(int num) {
-    lower.push(num);
-    auto t = lower.top();
-    lower.pop();
-    upper.push(t);
-
-    if (lower.size() < upper.size()) {
-      auto t = upper.top();
-      upper.pop();
-      lower.push(t);
-    }
-  }
-
-  double findMedian() {
-    if (lower.size() == upper.size()) return 0.5 * (lower.top() + upper.top());
-    return lower.top();
-  }
-};
-```
-
-## Q4. Kth Largest Element in an Array
+## Q1. Trapping Rain Water
 
 - Time: O(N)
 - Space: O(1)
 
 ```cpp
-class Solution {
- public:
-  int findKthLargest(vector<int>& nums, int k) {
-    int l = 0, r = static_cast<int>(nums.size()) - 1;
-    while (l <= r) {
-      auto mid = partition(nums, l, r);
-      if (mid == k - 1)
-        return nums[mid];
-      else if (mid < k - 1)
-        l = mid + 1;
-      else
-        r = mid - 1;
+int trap(vector<int>& height) {
+  int left = 0, left_max = 0;
+  int right = height.size() - 1, right_max = 0;
+
+  int area = 0;
+
+  while (left < right) {
+    if (height[left] < height[right]) {
+      left_max = max(left_max, height[left]);
+      area += max(left_max - height[left], 0);
+      ++left;
+    } else {
+      right_max = max(right_max, height[right]);
+      area += max(right_max - height[right], 0);
+      --right;
     }
-    return -1;
   }
 
-  /**
-   * QuickSelect
-   */
-  int partition(vector<int>& nums, int l, int r) {
-    int w_idx = l;
-    for (int i = l; i < r; ++i) {
-      if (nums[i] > nums[r]) swap(nums[w_idx++], nums[i]);
-    }
-    swap(nums[w_idx], nums[r]);
-    return w_idx;
-  }
-};
+  return area;
+}
 ```
 
-## Q5. Two Sum
+## Q2. Valid Parentheses
 
 - Time: O(N)
 - Space: O(N)
 
-```rust
-use std::collections::HashMap;
+```cpp
+bool isValid(string s) {
+  stack<char> st;
+  unordered_map<char, char> pp = {{'(', ')'}, {'[', ']'}, {'{', '}'}};
 
-impl Solution {
-  pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
-    let mut m: HashMap<i32, i32> = HashMap::new();
-
-    for (j, n) in nums.iter().enumerate() {
-      if let Some(&i) = m.get(n) {
-          return vec![i, j as i32];
-      }
-      m.insert(target - n, j as i32);
+  for (auto& c : s) {
+    if (pp.count(c)) {
+      // open
+      st.push(c);
+    } else {
+      // close
+      if (st.empty() || pp[st.top()] != c) return false;
+      st.pop();
     }
-
-    return Vec::new();
   }
+
+  return st.empty();
 }
 ```
 
-## Q6. Group Anagrams
+## Q3. Odd Even Jump
 
-- Time: O(NK log k)
-- Space: O(NK)
-
-```rust
-use std::collections::HashMap;
-
-impl Solution {
-  pub fn group_anagrams(strs: Vec<String>) -> Vec<Vec<String>> {
-    let mut m: HashMap<String, Vec<String>> = HashMap::new();
-
-    for word in strs {
-      let mut chars = word.chars().clone().collect::<Vec<_>>();
-      chars.sort();
-      let key: String = chars.into_iter().collect::<String>();
-      m.entry(key).or_insert_with(Vec::new).push(word);
-    }
-
-    m.into_iter().map(|(_, xs)| xs).collect::<Vec<Vec<String>>>()
-  }
-}
-```
-
-## Q7. Subarray Sum Equals K
-
-- Time: O(N)
+- Time: O(NlogN)
 - Space: O(N)
 
-```rust
-use std::collections::HashMap;
+```cpp
+int oddEvenJumps(vector<int>& A) {
+  int N = A.size();
 
-impl Solution {
-  pub fn subarray_sum(nums: Vec<i32>, k: i32) -> i32 {
-    let mut count = 0;
-    let mut sum = 0;
-    let mut map = HashMap::new();
-    map.insert(0, 1);
+  // value -> index
+  map<int, int> m;
+  m[A.back()] = N - 1;
 
-    for n in nums {
-      sum += n;
+  // Returns (can jump to j) where A[i] <= A[j]
+  vector<bool> odd(N, false);
+  // Returns (can jump to j) where A[i] >= A[j]
+  vector<bool> even(N, false);
 
-      if let Some(c) = map.get(&(sum - k)) {
-        count += c;
-      }
+  odd.back() = true;
+  even.back() = true;
 
-      *map.entry(sum).or_insert(0) += 1;
+  for (int i = N - 2; 0 <= i; --i) {
+    auto lo = m.lower_bound(A[i]);
+    auto hi = m.upper_bound(A[i]);
+
+    if (lo != m.end()) {
+      // find odd jump index
+      odd[i] = even[lo->second];
     }
 
-    count
+    if (hi != m.begin()) {
+      // find even jump index
+      even[i] = odd[(--hi)->second];
+    }
+
+    m[A[i]] = i;
   }
+
+  return accumulate(odd.begin(), odd.end(), 0);
 }
 ```
 
-## Q8. Palindrome Pairs
-
-- Time: -
-- Space: -
-
-
-## Q9. Copy List with Random Pointer
+## Q4. Basic Calculator
 
 - Time: O(N)
 - Space: O(N)
@@ -243,70 +103,212 @@ impl Solution {
 ```cpp
 class Solution {
  public:
-  Node* copyRandomList(Node* head) {
-    auto curr = head;
-    while (curr) {
-      curr->next = new Node(curr->val, curr->next, nullptr);
-      curr = curr->next->next;
+  int calculate(string s) {
+    stack<int> nums;
+
+    int result = 0;
+    int num = 0;
+
+    int sign = 1;
+
+    for (auto& c : s) {
+      if (std::isdigit(c)) {
+        num = num * 10 + static_cast<int>(c - '0');
+      } else if (c == '+') {
+        result += sign * num;
+        num = 0;
+        sign = 1;
+      } else if (c == '-') {
+        result += sign * num;
+        num = 0;
+        sign = -1;
+      } else if (c == '(') {
+        nums.push(result);
+        nums.push(sign);
+
+        result = 0;
+        sign = 1;
+      } else if (c == ')') {
+        result += sign * num;
+
+        auto _sign = nums.top();
+        nums.pop();
+        auto _final_result = nums.top();
+        nums.pop();
+
+        result = _final_result + _sign * result;
+        num = 0;
+      }
     }
 
-    curr = head;
-    while (curr) {
-      if (curr->random) curr->next->random = curr->random->next;
-      curr = curr->next->next;
+    if (num != 0) {
+      result += sign * num;
     }
 
-    Node t(-1, nullptr, nullptr);
-    auto t_it = &t;
-
-    curr = head;
-    while (curr) {
-      t_it->next = move(curr->next);
-      curr->next = move(t_it->next->next);
-
-      t_it = t_it->next;
-      curr = curr->next;
-    }
-
-    return t.next;
+    return result;
   }
+
+ private:
+  stack<char> m_ops;
+  stack<int> m_nums;
 };
 ```
 
-## Q10. Insert Delete GetRandom O(1)
+## Q5. Decode String
+
+- Time: O(N)
+- Space: O(N)
+
+```cpp
+string decodeString(const string& s, int& i) {
+  if (s.size() <= i) return "";
+  string ans;
+
+  while (i < s.size() && s[i] != ']') {
+    if (!isdigit(s[i])) {
+      ans.push_back(s[i++]);
+    } else {
+      int count = 0;
+      while (i < s.size() && isdigit(s[i])) {
+        count = 10 * count + (s[i++] - '0');
+      }
+
+      i++;
+      string temp{move(decodeString(s, i))};
+      while (count-- > 0) {
+        ans += temp;
+      }
+      i++;
+    }
+  }
+
+  return ans;
+}
+
+string decodeString(string s) {
+  string ans;
+  int p = 0;
+  return decodeString(s, p);
+}
+```
+
+## Q6. Stack Min
 
 - Time: O(1)
 - Space: O(N)
 
 ```cpp
-class Solution {
+class MinStack {
  public:
-  Node* copyRandomList(Node* head) {
-    auto curr = head;
-    while (curr) {
-      curr->next = new Node(curr->val, curr->next, nullptr);
-      curr = curr->next->next;
+  /** initialize your data structure here. */
+  MinStack() {}
+
+  void push(int x) {
+    if (x <= m_min) {
+      m_s.push(m_min);
+      m_min = x;
     }
-
-    curr = head;
-    while (curr) {
-      if (curr->random) curr->next->random = curr->random->next;
-      curr = curr->next->next;
-    }
-
-    Node t(-1, nullptr, nullptr);
-    auto t_it = &t;
-
-    curr = head;
-    while (curr) {
-      t_it->next = move(curr->next);
-      curr->next = move(t_it->next->next);
-
-      t_it = t_it->next;
-      curr = curr->next;
-    }
-
-    return t.next;
+    m_s.push(x);
   }
+
+  void pop() {
+    auto t = m_s.top();
+    m_s.pop();
+    if (t == m_min) {
+      m_min = m_s.top();
+      m_s.pop();
+    }
+  }
+
+  int top() { return m_s.top(); }
+
+  int getMin() { return m_min; }
+
+ private:
+  stack<int> m_s;
+  int m_min = INT_MAX;
 };
 ```
+
+## Q7. Queue via Stacks
+
+- Time: O(1)
+- Space: O(N)
+
+```cpp
+class MyQueue {
+ private:
+  stack<int> s1;
+  stack<int> s2;
+
+ public:
+  /** Initialize your data structure here. */
+  MyQueue() {}
+
+  /** Push element x to the back of queue. */
+  void push(int x) { s1.push(x); }
+
+  /** Removes the element from in front of queue and returns that element. */
+  int pop() {
+    auto t = peek();
+    s2.pop();
+    return t;
+  }
+
+  /** Get the front element. */
+  int peek() {
+    if (s2.empty()) {
+      while (s1.size()) {
+        s2.push(s1.top());
+        s1.pop();
+      }
+    }
+    return s2.top();
+  }
+
+  /** Returns whether the queue is empty. */
+  bool empty() { return s1.empty() && s2.empty(); }
+};
+```
+## Q8. Task Scheduler
+
+- Time: O(N)
+- Space: O(1)
+
+```python
+from collections import Counter
+
+
+class Solution:
+    def leastInterval(self, tasks: List[str], n: int) -> int:
+        """
+        A X X A X X A
+
+        A A A B, n = 2
+        A B X A X X A
+
+        A A A B B B, n = 2
+        A X X A X X A
+        A B X A B X A B
+        """
+        d = Counter()
+
+        max_ = 0
+        max_n = 0
+
+        for t in tasks:
+            d[t] += 1
+            if max_ < d[t]:
+                max_ = d[t]
+                max_n = 1
+            elif d[t] == max_:
+                max_n += 1
+
+        n_idle = (n - max_n + 1) * (max_ - 1) - (len(tasks) - max_n * max_)
+        return len(tasks) + max(0, n_idle)
+```
+
+## Extra (Linked List)
+
+
+
